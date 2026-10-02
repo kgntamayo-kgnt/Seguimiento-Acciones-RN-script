@@ -95,11 +95,15 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-3">
-        <div class="hidden md:flex flex-col text-right">
+      <div class="flex items-center gap-2 sm:gap-3">
+        <div class="hidden lg:flex flex-col text-right">
           <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">Vigencia Licencia: <strong class="text-amber-600 dark:text-amber-400 font-mono">23-Jul-2030</strong></span>
           <span id="countdownLicense" class="text-[11px] font-mono text-emerald-600 dark:text-emerald-400">Calculando plazo...</span>
         </div>
+        <button onclick="openModalGASSetup()" id="btnSyncStatus" class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-semibold px-2.5 sm:px-3 py-2 rounded-lg text-xs transition flex items-center gap-1.5 shadow-sm" title="Estado de Conexión Google Sheets / Apps Script">
+          <span id="syncStatusDot" class="w-2 h-2 rounded-full bg-blue-500"></span>
+          <span id="syncStatusLabel" class="hidden sm:inline">Google Sheets</span>
+        </button>
         <button id="themeToggleBtn" onclick="toggleTheme()" class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-semibold px-3 py-2 rounded-lg text-xs transition flex items-center gap-1.5 shadow-sm" title="Alternar modo claro / oscuro">
           <span id="themeToggleIcon">☀️</span>
           <span id="themeToggleText" class="hidden sm:inline">Modo Día</span>
@@ -845,6 +849,89 @@
     </div>
   </div>
 
+  <!-- MODAL: GOOGLE APPS SCRIPT Y GOOGLE SHEETS -->
+  <div id="modalGASSetup" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh] transition">
+      
+      <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-base border border-emerald-500/20">
+            📊
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-slate-900 dark:text-white">Conexión con Google Sheets y Google Apps Script</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Trazabilidad persistente de comunicaciones y compromisos regulatorios</p>
+          </div>
+        </div>
+        <button onclick="closeModalGASSetup()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-lg font-semibold">&times;</button>
+      </div>
+
+      <div class="p-5 space-y-4 overflow-y-auto custom-scrollbar flex-1 text-xs">
+        
+        <!-- Estado Actual de Conexión -->
+        <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-[10px]">Estado del Entorno</span>
+            <span id="gasModalStatusBadge" class="px-2.5 py-0.5 rounded-full font-bold text-[10px] bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/30">
+              Modo Autónomo Local (Compatible GAS)
+            </span>
+          </div>
+          <p id="gasModalStatusDesc" class="text-slate-600 dark:text-slate-400 text-[11px] leading-relaxed">
+            La aplicación está operando con almacenamiento local y está 100% preparada para ejecutarse como Web App en Google Apps Script conectada a Google Sheets mediante <code class="font-mono text-amber-600 dark:text-amber-400">google.script.run</code>.
+          </p>
+          <div id="gasModalSheetLinkRow" class="hidden pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px]">
+            <span class="text-slate-500">Hoja de cálculo vinculada:</span>
+            <a id="gasModalSheetLink" href="#" target="_blank" class="font-mono text-emerald-600 dark:text-emerald-400 hover:underline font-semibold flex items-center gap-1">
+              <span>Abrir Hoja de Cálculo en Google Sheets</span> ↗
+            </a>
+          </div>
+        </div>
+
+        <!-- Acciones Rápidas -->
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="syncDataFromGAS()" id="btnForceSyncGAS" class="px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition flex items-center gap-1.5 shadow-sm">
+            <span>🔄 Sincronizar con Google Sheets</span>
+          </button>
+          <button onclick="exportDataJSON()" class="px-3.5 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-semibold transition flex items-center gap-1.5">
+            <span>💾 Descargar Respaldo JSON</span>
+          </button>
+        </div>
+
+        <!-- Instrucciones de Despliegue en Google Apps Script -->
+        <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 space-y-3">
+          <h4 class="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+            <span>🚀</span> Guía para Usar como Web App Privada en Google Apps Script
+          </h4>
+          <ol class="list-decimal pl-4 space-y-2 text-slate-600 dark:text-slate-400 text-[11px] leading-relaxed">
+            <li>
+              <strong>Abre tu Google Sheet:</strong> Crea una hoja de cálculo en <a href="https://sheets.new" target="_blank" class="text-amber-600 dark:text-amber-400 hover:underline font-semibold">sheets.new</a> y ve a <strong>Extensiones &gt; Apps Script</strong>.
+            </li>
+            <li>
+              <strong>Pega el backend (Código.gs):</strong> En el archivo <code class="font-mono bg-slate-200 dark:bg-slate-800 px-1 rounded text-slate-800 dark:text-slate-200">Código.gs</code>, reemplaza el contenido por el archivo <code class="font-mono text-amber-600 dark:text-amber-400 font-semibold">Código.gs</code> incluido en esta app.
+            </li>
+            <li>
+              <strong>Crea el archivo HTML (index.html):</strong> En el panel izquierdo de Apps Script, presiona <strong>+ &gt; HTML</strong>, nómbralo <code class="font-mono bg-slate-200 dark:bg-slate-800 px-1 rounded text-slate-800 dark:text-slate-200">index</code> y pega todo este código HTML.
+            </li>
+            <li>
+              <strong>Publica la Aplicación Web:</strong> Haz clic en <strong>Implementar &gt; Nueva implementación</strong>, selecciona tipo <strong>Aplicación web</strong>, ejecuta como: <strong>Yo</strong> y en acceso: <strong>Solo yo</strong> (o usuarios autorizados de tu dominio institucional).
+            </li>
+            <li>
+              <strong>(Opcional) Clave Gemini AI:</strong> Para activar el Evaluador y Redactor IA en Apps Script, ve a ⚙️ (Configuración del proyecto) &gt; <em>Propiedades de la secuencia de comandos</em> &gt; Agrega <code class="font-mono">GEMINI_API_KEY</code>.
+            </li>
+          </ol>
+        </div>
+
+      </div>
+
+      <div class="px-5 py-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+        <button type="button" onclick="closeModalGASSetup()" class="px-4 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold transition">
+          Cerrar
+        </button>
+      </div>
+
+    </div>
+  </div>
+
   <!-- Toast Notification Container -->
   <div id="toastContainer" class="fixed bottom-4 right-4 z-50 space-y-2 pointer-events-none"></div>
 
@@ -975,6 +1062,101 @@ REGLAS OBLIGATORIAS:
     // State loaded from localStorage or fallback
     let communications = [];
     let technicalActions = [];
+    let connectedSheetUrl = null;
+    let syncStatus = 'local'; // 'local' | 'connecting' | 'connected' | 'error'
+
+    function isAppsScriptEnvironment() {
+      return typeof google !== 'undefined' && typeof google.script !== 'undefined' && typeof google.script.run !== 'undefined';
+    }
+
+    function openModalGASSetup() {
+      document.getElementById('modalGASSetup').classList.remove('hidden');
+    }
+
+    function closeModalGASSetup() {
+      document.getElementById('modalGASSetup').classList.add('hidden');
+    }
+
+    function updateSyncUI(status, sheetUrl = null) {
+      syncStatus = status;
+      if (sheetUrl) connectedSheetUrl = sheetUrl;
+
+      const dot = document.getElementById('syncStatusDot');
+      const label = document.getElementById('syncStatusLabel');
+      const badge = document.getElementById('gasModalStatusBadge');
+      const desc = document.getElementById('gasModalStatusDesc');
+      const linkRow = document.getElementById('gasModalSheetLinkRow');
+      const link = document.getElementById('gasModalSheetLink');
+
+      if (status === 'connected') {
+        if (dot) dot.className = 'w-2 h-2 rounded-full bg-emerald-500';
+        if (label) label.textContent = 'Google Sheets (Online)';
+        if (badge) {
+          badge.textContent = 'Conectado a Google Sheets';
+          badge.className = 'px-2.5 py-0.5 rounded-full font-bold text-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30';
+        }
+        if (desc) desc.textContent = 'La aplicación está sincronizada en tiempo real con las pestañas "Comunicaciones" y "Actuaciones" de tu Google Sheet.';
+        if (linkRow && connectedSheetUrl) {
+          linkRow.classList.remove('hidden');
+          if (link) link.href = connectedSheetUrl;
+        }
+      } else if (status === 'connecting') {
+        if (dot) dot.className = 'w-2 h-2 rounded-full bg-amber-500 animate-ping';
+        if (label) label.textContent = 'Sincronizando Sheets...';
+        if (badge) {
+          badge.textContent = 'Conectando con Google Sheets...';
+          badge.className = 'px-2.5 py-0.5 rounded-full font-bold text-[10px] bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30';
+        }
+      } else if (status === 'error') {
+        if (dot) dot.className = 'w-2 h-2 rounded-full bg-rose-500';
+        if (label) label.textContent = 'Sheets Desconectado';
+        if (badge) {
+          badge.textContent = 'Error de Conexión Sheets';
+          badge.className = 'px-2.5 py-0.5 rounded-full font-bold text-[10px] bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30';
+        }
+      } else {
+        // Modo local
+        if (dot) dot.className = 'w-2 h-2 rounded-full bg-blue-500';
+        if (label) label.textContent = 'Google Sheets (Listo)';
+        if (badge) {
+          badge.textContent = 'Modo Autónomo Local (Compatible GAS)';
+          badge.className = 'px-2.5 py-0.5 rounded-full font-bold text-[10px] bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/30';
+        }
+        if (desc) desc.innerHTML = 'La aplicación está operando con almacenamiento local y está 100% preparada para ejecutarse como Web App en Google Apps Script conectada a Google Sheets mediante <code class="font-mono text-amber-600 dark:text-amber-400">google.script.run</code>.';
+      }
+    }
+
+    function syncDataFromGAS() {
+      if (!isAppsScriptEnvironment()) {
+        showToast('Para sincronizar con Sheets, ejecuta la app desplegada en Google Apps Script', 'info');
+        return;
+      }
+      updateSyncUI('connecting');
+      showToast('Descargando datos desde Google Sheets...', 'info');
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (response && response.success) {
+            if (response.communications && response.communications.length > 0) {
+              communications = response.communications;
+            }
+            if (response.technicalActions && response.technicalActions.length > 0) {
+              technicalActions = response.technicalActions;
+            }
+            connectedSheetUrl = response.sheetUrl || connectedSheetUrl;
+            saveState();
+            updateSyncUI('connected', connectedSheetUrl);
+            showToast('Datos sincronizados con éxito desde Google Sheets', 'success');
+          } else {
+            updateSyncUI('error');
+            showToast('Error al leer de Sheets: ' + (response ? response.error : 'Sin respuesta'), 'error');
+          }
+        })
+        .withFailureHandler(function(err) {
+          updateSyncUI('error');
+          showToast('Error al conectar con Google Sheets: ' + (err.message || err), 'error');
+        })
+        .getAppData();
+    }
 
     function initTheme() {
       const savedTheme = localStorage.getItem('ianr1_theme') || 'dark';
@@ -1017,6 +1199,39 @@ REGLAS OBLIGATORIAS:
       renderDashboard();
       renderCommunicationsTable();
       renderActionsCards();
+
+      // Detect if running inside Google Apps Script Web App
+      if (isAppsScriptEnvironment()) {
+        updateSyncUI('connecting');
+        google.script.run
+          .withSuccessHandler(function(response) {
+            if (response && response.success) {
+              if (response.communications && response.communications.length > 0) {
+                communications = response.communications;
+              }
+              if (response.technicalActions && response.technicalActions.length > 0) {
+                technicalActions = response.technicalActions;
+              }
+              connectedSheetUrl = response.sheetUrl || null;
+              localStorage.setItem(STORAGE_KEY_COMM, JSON.stringify(communications));
+              localStorage.setItem(STORAGE_KEY_ACTIONS, JSON.stringify(technicalActions));
+              renderDashboard();
+              renderCommunicationsTable();
+              renderActionsCards();
+              updateSyncUI('connected', connectedSheetUrl);
+              showToast('Sincronizado con Google Sheets (LO-MME-013-2025-M2)', 'success');
+            } else {
+              updateSyncUI('local');
+            }
+          })
+          .withFailureHandler(function(err) {
+            console.warn('Google Sheets no disponible en este momento:', err);
+            updateSyncUI('error');
+          })
+          .getAppData();
+      } else {
+        updateSyncUI('local');
+      }
 
       // Pre-fill date inputs with current date
       const todayStr = new Date().toISOString().split('T')[0];
@@ -1434,9 +1649,10 @@ REGLAS OBLIGATORIAS:
 
       communications.unshift(newComm);
 
+      let autoAct = null;
       // If actions were specified, also create an automatic technical action item
       if (newComm.actionsReq && newComm.status !== 'CERRADO') {
-        technicalActions.unshift({
+        autoAct = {
           id: 'ACT-' + Date.now(),
           title: `Atender requerimiento: ${newComm.subject.substring(0, 50)}...`,
           doc: docsArray.length > 0 ? docsArray[0] : 'Varios',
@@ -1445,13 +1661,31 @@ REGLAS OBLIGATORIAS:
           priority: 'ALTA',
           status: 'PENDIENTE',
           desc: newComm.actionsReq
-        });
+        };
+        technicalActions.unshift(autoAct);
       }
 
       saveState();
       closeModalNewComm();
       document.getElementById('formNewComm').reset();
       showToast('Comunicación registrada con éxito', 'success');
+
+      // Sync with Google Sheets if in Apps Script environment
+      if (isAppsScriptEnvironment()) {
+        google.script.run
+          .withSuccessHandler(function() {
+            showToast('Sincronizado en Google Sheets (Comunicaciones)', 'success');
+          })
+          .withFailureHandler(function(err) {
+            console.error('Error al guardar comunicación en Sheets:', err);
+            showToast('Aviso: guardado local (error en Sheets: ' + (err.message || err) + ')', 'warning');
+          })
+          .saveCommunication(newComm);
+
+        if (autoAct) {
+          google.script.run.saveTechnicalAction(autoAct);
+        }
+      }
     }
 
     function handleSaveAction(e) {
@@ -1472,6 +1706,19 @@ REGLAS OBLIGATORIAS:
       closeModalNewAction();
       document.getElementById('formNewAction').reset();
       showToast('Actuación técnica agregada', 'success');
+
+      // Sync with Google Sheets if in Apps Script environment
+      if (isAppsScriptEnvironment()) {
+        google.script.run
+          .withSuccessHandler(function() {
+            showToast('Actuación guardada en Google Sheets', 'success');
+          })
+          .withFailureHandler(function(err) {
+            console.error('Error al guardar actuación en Sheets:', err);
+            showToast('Guardado localmente', 'info');
+          })
+          .saveTechnicalAction(newAct);
+      }
     }
 
     function toggleCommStatus(id) {
@@ -1482,6 +1729,12 @@ REGLAS OBLIGATORIAS:
         else comm.status = 'PENDIENTE';
         saveState();
         showToast('Estado de comunicación actualizado', 'info');
+
+        if (isAppsScriptEnvironment()) {
+          google.script.run
+            .withFailureHandler(function(err) { console.error('Error en Sheets:', err); })
+            .saveCommunication(comm);
+        }
       }
     }
 
@@ -1489,6 +1742,17 @@ REGLAS OBLIGATORIAS:
       communications = communications.filter(c => c.id !== id);
       saveState();
       showToast('Comunicación eliminada', 'info');
+
+      if (isAppsScriptEnvironment()) {
+        google.script.run
+          .withSuccessHandler(function() {
+            showToast('Eliminada de Google Sheets', 'info');
+          })
+          .withFailureHandler(function(err) {
+            console.error('Error al eliminar en Sheets:', err);
+          })
+          .deleteCommunication(id);
+      }
     }
 
     function toggleActionStatus(id) {
@@ -1497,6 +1761,12 @@ REGLAS OBLIGATORIAS:
         act.status = act.status === 'PENDIENTE' ? 'COMPLETADO' : 'PENDIENTE';
         saveState();
         showToast(`Actuación marcada como ${act.status}`, 'info');
+
+        if (isAppsScriptEnvironment()) {
+          google.script.run
+            .withFailureHandler(function(err) { console.error('Error en Sheets:', err); })
+            .updateActionStatus(id, act.status);
+        }
       }
     }
 
@@ -1506,6 +1776,12 @@ REGLAS OBLIGATORIAS:
         act.status = 'COMPLETADO';
         saveState();
         showToast('Actuación completada con éxito', 'success');
+
+        if (isAppsScriptEnvironment()) {
+          google.script.run
+            .withFailureHandler(function(err) { console.error('Error en Sheets:', err); })
+            .updateActionStatus(id, 'COMPLETADO');
+        }
       }
     }
 
@@ -1513,6 +1789,17 @@ REGLAS OBLIGATORIAS:
       technicalActions = technicalActions.filter(a => a.id !== id);
       saveState();
       showToast('Actuación eliminada', 'info');
+
+      if (isAppsScriptEnvironment()) {
+        google.script.run
+          .withSuccessHandler(function() {
+            showToast('Eliminada de Google Sheets', 'info');
+          })
+          .withFailureHandler(function(err) {
+            console.error('Error al eliminar actuación en Sheets:', err);
+          })
+          .deleteTechnicalAction(id);
+      }
     }
 
     let currentAnalysisCache = null;
@@ -1566,8 +1853,29 @@ REGLAS OBLIGATORIAS:
       }
     }
 
-    // Call Gemini API with exponential backoff
+    // Call Gemini API (Supports Google Apps Script via UrlFetchApp or Node.js via /api/gemini)
     async function callGeminiAPI(payload, retries = 3, delay = 1000) {
+      // In Google Apps Script environment, call the backend function callGeminiApiGAS
+      if (isAppsScriptEnvironment()) {
+        return new Promise((resolve, reject) => {
+          google.script.run
+            .withSuccessHandler(function(response) {
+              if (!response) {
+                reject(new Error("Respuesta vacía desde Google Apps Script"));
+              } else if (response.error) {
+                reject(new Error(response.error));
+              } else {
+                resolve(response);
+              }
+            })
+            .withFailureHandler(function(err) {
+              reject(new Error(err.message || err.toString()));
+            })
+            .callGeminiApiGAS(payload);
+        });
+      }
+
+      // In Node.js / AI Studio environment, call the Express proxy
       try {
         const response = await fetch(GEMINI_API_URL, {
           method: 'POST',
